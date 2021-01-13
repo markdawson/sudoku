@@ -41,9 +41,9 @@ column_units = [cross(rows, col) for col in cols]
 square_units = [cross(row, col)
                 for row in ['ABC', 'DEF', 'GHI']
                 for col in ['123', '456', '789']]
-diagonal_units = [[''.join(z) for z in zip(rows, cols)],
-                  [''.join(z) for z in zip(rows, reversed(cols))]]
-unit_list = row_units + column_units + square_units + diagonal_units
+# diagonal_units = [[''.join(z) for z in zip(rows, cols)],
+#                   [''.join(z) for z in zip(rows, reversed(cols))]]
+unit_list = row_units + column_units + square_units  # + diagonal_units
 units = dict((s, [u for u in unit_list if s in u]) for s in boxes)
 peers = dict((s, set(sum(units[s], [])) - {s}) for s in boxes)
 
@@ -129,19 +129,19 @@ def display(grid_dict: dict, debugging_display: bool = False):
         print(''.join(display_row))
 
 
-def eliminate(values):
+def eliminate(grid_dict):
     """
     Eliminate possibilities from a box if one of its
     peers definitely already has that value.
     """
-    for box, value in values.items():
-        for unit in peers[box]:
-            if len(values[unit]) == 1:
-                value = value.replace(values[unit][0], '')
+    for box, value in grid_dict.items():
+        for peer in peers[box]:
+            if len(grid_dict[peer]) == 1:
+                value = value.replace(grid_dict[peer][0], '')
         # values[key] = value
-        assign_value(values, box, value)
+        assign_value(grid_dict, box, value)
 
-    return values
+    return grid_dict
 
 
 def only_choice(values):
@@ -169,37 +169,67 @@ def only_choice(values):
     return values
 
 
-def reduce_puzzle(values):
+def verify_no_empty_boxes(grid_dict, message):
+    empty_boxes = [box for box in grid_dict.keys() if len(grid_dict[box]) == 0]
+    if empty_boxes:
+        print(message)
+        raise Exception(f"We've eliminated all the possibilities for a box: {empty_boxes}")
+
+
+def reduce_puzzle(grid_dict):
     stalled = False
     while not stalled:
-        if isinstance(values, str):
-            print('Values is {}'.format(values))
-        number_solved_before = len([box for box in values.keys() if len(values[box]) == 1])
-        values = eliminate(values)
-        values = only_choice(values)
-        number_solved_after = len([box for box in values.keys() if len(values[box]) == 1])
+        if isinstance(grid_dict, str):
+            print('Values is {}'.format(grid_dict))
+        number_solved_before = len([box for box in grid_dict.keys() if len(grid_dict[box]) == 1])
+
+        verify_no_empty_boxes(grid_dict, "Before eliminate")
+        grid_dict = eliminate(grid_dict)
+        verify_no_empty_boxes(grid_dict, "After eliminate")
+
+        grid_dict = only_choice(grid_dict)
+        verify_no_empty_boxes(grid_dict, "After only choice")
+
+        number_solved_after = len([box for box in grid_dict.keys() if len(grid_dict[box]) == 1])
         stalled = number_solved_before == number_solved_after
+
         # Sanity check
-        if len([box for box in values.keys() if len(values[box]) == 0]):
-            return False
-    return values
+        verify_no_empty_boxes(grid_dict, "At end of while loop")
+    return grid_dict
 
 
 def search(grid_dict):
-    value = reduce_puzzle(grid_dict)
-    if value is False:
+    grid_dict = reduce_puzzle(grid_dict)
+    if grid_dict is False:
         return False
 
-    if all((len(value[k]) == 1 for k in boxes)):
-        return value
+    if all((len(grid_dict[k]) == 1 for k in boxes)):
+        print("................... all boxes")
+        return grid_dict
 
     min_val, min_box = min((len(grid_dict[box]), box) for box in boxes if len(grid_dict[box]) > 1)
-    for possibility in value[min_box]:
+    for possibility in grid_dict[min_box]:
         new_search_values = grid_dict.copy()
         new_search_values[min_box] = possibility
         attempt = search(new_search_values)
         if attempt:
             return attempt
+
+
+def grid_is_solved(grid_dict: dict) -> bool:
+    return all(len(val) == 1 for val in grid_dict.values())
+
+
+def grid_to_output_format(grid_dict: dict) -> str:
+    print(grid_dict)
+    print(grid_is_solved(grid_dict))
+    if not grid_is_solved(grid_dict):
+        raise Exception("This grid is not solved.")
+    else:
+        result = ""
+        for box in boxes:
+            result += grid_dict[box]
+        return result
 
 
 def solve(sudoku_input: str, print_results: bool = True):
@@ -225,10 +255,14 @@ def solve(sudoku_input: str, print_results: bool = True):
     if print_results:
         display(global_grid)
 
-    return global_grid
+    return grid_to_output_format(global_grid)
 
 
 if __name__ == "__main__":
-    with open("sudoku_puzzle2.txt") as f:
-        sample_input = f.read()
-        print(solve(sample_input))
+    with open("sudoku_puzzle3.txt") as f:
+        sample_input = f.read().strip()
+        actual_output = solve(sample_input)
+        print(actual_output)
+    # with open("sudoku_puzzle2_solution.txt") as f:
+    #     expected_output = f.read().strip()
+    #     assert actual_output == expected_output
