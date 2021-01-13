@@ -1,4 +1,5 @@
 # Simple Sudoku Solver
+A toy project for my application to [the Recurse Center](https://www.recurse.com/).
 
 This is a plain Python sudoku solver that can solve any sudoku puzzle through a
 combination of constraint satisfaction and brute force search.
@@ -69,5 +70,5 @@ Note that, we could, of course, solve puzzle using the brute force search, but i
 applying the constraint satisfaction heuristics. In the test file, we test the solver with the constraint satisfaction 
 heuristics as well as without.
 
-Note this code was made as part of the [Udacity Artificial Intelligence Nanodegree](https://github.com/udacity/AIND-Sudoku) 
-so some of the stubs may look similar. 
+Note this code was original written as part of the [Udacity Artificial Intelligence Nanodegree](https://github.com/udacity/AIND-Sudoku)
+and cleaned up to apply to the Recurse Center. Some of the stubs may look similar to the Udacity repo.
