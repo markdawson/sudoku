@@ -41,9 +41,7 @@ column_units = [cross(rows, col) for col in cols]
 square_units = [cross(row, col)
                 for row in ['ABC', 'DEF', 'GHI']
                 for col in ['123', '456', '789']]
-# diagonal_units = [[''.join(z) for z in zip(rows, cols)],
-#                   [''.join(z) for z in zip(rows, reversed(cols))]]
-unit_list = row_units + column_units + square_units  # + diagonal_units
+unit_list = row_units + column_units + square_units
 units = dict((s, [u for u in unit_list if s in u]) for s in boxes)
 peers = dict((s, set(sum(units[s], [])) - {s}) for s in boxes)
 
@@ -92,7 +90,7 @@ def naked_twins(values):
 
 
 def sudoku_input_string_to_grid_dict(grid):
-    """Convert grid into a dict of {square: char} with '.' for empties."""
+    """Convert input format into a dict of {square: char} with '.' for empties."""
     assert len(grid) == 81
     board = []
     digits = '123456789'
@@ -138,7 +136,6 @@ def eliminate(grid_dict):
         for peer in peers[box]:
             if len(grid_dict[peer]) == 1:
                 value = value.replace(grid_dict[peer][0], '')
-        # values[key] = value
         assign_value(grid_dict, box, value)
 
     return grid_dict
@@ -195,36 +192,42 @@ def reduce_puzzle(grid_dict):
 
         # Sanity check
         verify_no_empty_boxes(grid_dict, "At end of while loop")
+
+    print("")
+    display(grid_dict)
     return grid_dict
 
 
 def search(grid_dict):
     grid_dict = reduce_puzzle(grid_dict)
     if grid_dict is False:
+        raise Exception("Something broke in reduce puzzle")
         return False
 
-    if all((len(grid_dict[k]) == 1 for k in boxes)):
-        print("................... all boxes")
+    if is_solved(grid_dict):
+        print("The following grid should be solved:")
+        print(grid_dict)
+        print("============>" * 6)
         return grid_dict
 
     min_val, min_box = min((len(grid_dict[box]), box) for box in boxes if len(grid_dict[box]) > 1)
     for possibility in grid_dict[min_box]:
-        new_search_values = grid_dict.copy()
-        new_search_values[min_box] = possibility
-        attempt = search(new_search_values)
-        if attempt:
+        print()
+        print(f"Exploring possibility: {possibility} in box {min_box}...")
+        new_search_grid_dict = grid_dict.copy()
+        new_search_grid_dict[min_box] = possibility
+        attempt = search(new_search_grid_dict)
+        if is_solved(attempt):
             return attempt
 
 
-def grid_is_solved(grid_dict: dict) -> bool:
+def is_solved(grid_dict: dict) -> bool:
     return all(len(val) == 1 for val in grid_dict.values())
 
 
 def grid_to_output_format(grid_dict: dict) -> str:
-    print(grid_dict)
-    print(grid_is_solved(grid_dict))
-    if not grid_is_solved(grid_dict):
-        raise Exception("This grid is not solved.")
+    if not is_solved(grid_dict):
+        raise Exception(f"This grid is not solved: {grid_dict}")
     else:
         result = ""
         for box in boxes:
@@ -244,25 +247,20 @@ def solve(sudoku_input: str, print_results: bool = True):
     if not m:
         raise Exception("Improperly formatted input.")
 
-    global_grid = sudoku_input_string_to_grid_dict(sudoku_input)
-    print(global_grid)
+    input_grid = sudoku_input_string_to_grid_dict(sudoku_input)
 
     if print_results:
-        display(global_grid)
+        display(input_grid)
 
-    search(global_grid)
+    solution_grid = search(input_grid)
 
     if print_results:
-        display(global_grid)
+        display(solution_grid)
 
-    return grid_to_output_format(global_grid)
+    return grid_to_output_format(solution_grid)
 
 
 if __name__ == "__main__":
-    with open("sudoku_puzzle3.txt") as f:
+    with open("sudoku_puzzle1.txt") as f:
         sample_input = f.read().strip()
-        actual_output = solve(sample_input)
-        print(actual_output)
-    # with open("sudoku_puzzle2_solution.txt") as f:
-    #     expected_output = f.read().strip()
-    #     assert actual_output == expected_output
+        output = solve(sample_input)
