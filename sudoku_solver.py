@@ -53,9 +53,6 @@ peers = dict((s, set(sum(peer_group[s], [])) - {s}) for s in boxes)
 
 
 def assign_value(values, box, value):
-    """
-    This
-    """
     values[box] = value
     if len(value) == 1:
         assignments.append(values.copy())
@@ -222,6 +219,12 @@ def get_min_box(grid_dict):
 
 
 def search(grid_dict, use_constraint_satisfaction_heuristics=True):
+    """
+
+    :param grid_dict:
+    :param use_constraint_satisfaction_heuristics: A flag for
+    :return: The solved grid_dict
+    """
     if use_constraint_satisfaction_heuristics:
         grid_dict = fill_in_with_constraint_satisfaction(grid_dict)
 

@@ -1,8 +1,7 @@
 # Simple Sudoku Solver
 
 This is a plain Python sudoku solver that can solve any sudoku puzzle through a
-combination of constraint satisfaction and brute force search (using a simple heuristic
-to decide which nodes to search next).
+combination of constraint satisfaction and brute force search.
 
 ## Usage
 To see how the program works, simply type:
@@ -33,7 +32,7 @@ in the following format:
 That is - Type all 81 characters of the puzzle from left to right, top to bottom with dots
 as empty squares. We can call this format a "puzzle string".
 
-It's recommend you put the puzzle string in a `.txt` file, but you can also feed in this string to the
+It's recommend you put the puzzle string in a `.txt` file, but you can also feed this string into to the
 `solve()` function directly. The solve function is the only function you need to use.
 
 ## Implementation Details
@@ -66,4 +65,9 @@ The three constraint satisfaction heuristics we use are:
                 `{"A1": "157", "A2": "57", "A3": "57", ...}`. Then `A1` contain value `1` because `A2` and `A3` must
                 contain `5` and `7`.
                 
-Note that, we could, of course, solve  
+Note that, we could, of course, solve puzzle using the brute force search, but it would be much less efficient than
+applying the constraint satisfaction heuristics. In the test file, we test the solver with the constraint satisfaction 
+heuristics as well as without.
+
+Note this code was made as part of the [Udacity Artificial Intelligence Nanodegree](https://github.com/udacity/AIND-Sudoku) 
+so some of the stubs may look similar. 
