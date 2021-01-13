@@ -245,6 +245,6 @@ def solve(sudoku_input: str, use_constraint_satisfaction_heuristics: bool = True
 
 
 if __name__ == "__main__":
-    with open("sudoku_puzzle3.txt") as f:
+    with open("tests/sudoku_puzzle3.txt") as f:
         sample_input = f.read().strip()
         output = solve(sample_input)
