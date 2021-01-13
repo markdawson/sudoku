@@ -1,30 +1,8 @@
 """
-This program takes an unsolved Sudoku puzzle as an argument and returns it solved.
-
-The format for the unsolved Sudoku puzzle is like this:
-2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3
-
-The characters are ordered from left to right and top to down.
-A number represents a space filled in with a given initial number and a dot (.) represents an empty space.
-So the Sudoku puzzle above would looks like this:
-
-2__ | ___ | ___
-___ | __6 | 2__
-__1 | ___ | _7_
-----+-----+-----
-__6 | __8 | ___
-3__ | _9_ | __7
-___ | 6__ | 4__
-----+-----+-----
-_4_ | ___ | 8__
-__5 | 2__ | ___
-___ | ___ | __3
+Takes an unsolved Sudoku puzzle and returns it solved.
 """
 import re
 from collections import Counter
-from uuid import uuid4
-
-assignments = []
 
 NUM_SEARCHES = 0
 
@@ -52,14 +30,12 @@ peer_group = dict((s, [u for u in peer_group_list if s in u]) for s in boxes)
 peers = dict((s, set(sum(peer_group[s], [])) - {s}) for s in boxes)
 
 
-def assign_value(values, box, value):
-    values[box] = value
-    if len(value) == 1:
-        assignments.append(values.copy())
-    return values
+def assign_value(grid_dict, box, value) -> dict:
+    grid_dict[box] = value
+    return grid_dict
 
 
-def naked_twins(grid_dict):
+def naked_twins(grid_dict) -> dict:
     """Eliminate values using the naked twins strategy.
 
     Args:
@@ -90,12 +66,12 @@ def naked_twins(grid_dict):
     return grid_dict
 
 
-def sudoku_input_string_to_grid_dict(grid):
+def sudoku_input_string_to_grid_dict(grid_string) -> dict:
     """Convert input format into a dict of {square: char} with '.' for empties."""
-    assert len(grid) == 81
+    assert len(grid_string) == 81
     board = []
     digits = '123456789'
-    for val in grid:
+    for val in grid_string:
         if val in digits:
             board.append(val)
         if val == '.':
@@ -103,7 +79,7 @@ def sudoku_input_string_to_grid_dict(grid):
     return dict(zip(boxes, board))
 
 
-def display(grid_dict: dict, debugging_display: bool = False):
+def display(grid_dict: dict, debugging_display: bool = False) -> None:
     """
     Display these values as a 2-D grid.
     :param grid_dict: A dictionary of the squares and potential values for each square.
@@ -131,7 +107,7 @@ def display(grid_dict: dict, debugging_display: bool = False):
         print(''.join(display_row))
 
 
-def eliminate(grid_dict):
+def eliminate(grid_dict) -> dict:
     """
     Eliminate possibilities from a box if one of its
     peers definitely already has that value.
@@ -145,7 +121,7 @@ def eliminate(grid_dict):
     return grid_dict
 
 
-def only_choice(values):
+def only_choice(grid_dict) -> dict:
     """
     Assign a box to a value if it's the only box
     in a unit that could contain that value
@@ -154,7 +130,7 @@ def only_choice(values):
         occurs_only_once = set()
         occurs_more_than_once = set()
         for box in unit:
-            for possibility in values[box]:
+            for possibility in grid_dict[box]:
                 if possibility in occurs_more_than_once:
                     continue
                 elif possibility in occurs_only_once:
@@ -164,13 +140,13 @@ def only_choice(values):
                     occurs_only_once.add(possibility)
 
         for box in unit:
-            for possibility in values[box]:
+            for possibility in grid_dict[box]:
                 if possibility in occurs_only_once:
-                    assign_value(values, box, possibility)
-    return values
+                    assign_value(grid_dict, box, possibility)
+    return grid_dict
 
 
-def grid_to_output_format(grid_dict: dict) -> str:
+def grid_to_output_format(grid_dict) -> str:
     if not is_solved(grid_dict):
         raise Exception(f"This grid is not solved: {grid_dict}")
     else:
@@ -180,7 +156,7 @@ def grid_to_output_format(grid_dict: dict) -> str:
         return result
 
 
-def fill_in_with_constraint_satisfaction(grid_dict):
+def fill_in_with_constraint_satisfaction(grid_dict) -> dict:
     stalled = False
     while not stalled:
         number_solved_before = len([box for box in grid_dict.keys() if len(grid_dict[box]) == 1])
@@ -195,7 +171,7 @@ def fill_in_with_constraint_satisfaction(grid_dict):
     return grid_dict
 
 
-def is_valid(grid_dict: dict) -> bool:
+def is_valid(grid_dict) -> bool:
     for group in peer_group_list:
         group_values = set()
         for box in group:
@@ -209,16 +185,16 @@ def is_valid(grid_dict: dict) -> bool:
     return True
 
 
-def is_solved(grid_dict: dict) -> bool:
+def is_solved(grid_dict) -> bool:
     return grid_dict and is_valid(grid_dict) and all(len(val) == 1 for val in grid_dict.values())
 
 
-def get_min_box(grid_dict):
+def get_min_box(grid_dict) -> str:
     min_val, min_box = min((len(grid_dict[box]), box) for box in boxes if len(grid_dict[box]) > 1)
     return min_box
 
 
-def search(grid_dict, use_constraint_satisfaction_heuristics=True):
+def search(grid_dict, use_constraint_satisfaction_heuristics: bool = True) -> dict:
     """
 
     :param grid_dict:
@@ -241,7 +217,7 @@ def search(grid_dict, use_constraint_satisfaction_heuristics=True):
                 return attempt
 
 
-def solve(sudoku_input: str, use_constraint_satisfaction_heuristics: bool = True, print_results: bool = True,):
+def solve(sudoku_input: str, use_constraint_satisfaction_heuristics: bool = True, print_results: bool = True, ):
     """
     Takes an input string and returns a grid with the corresponding values filled in.
 
